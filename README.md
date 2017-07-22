@@ -2,28 +2,39 @@
 
 (1)Method:
 
-//SetInputType
+SetInputType
+
 textView.hj_inputHandler.inputType =  HJInputHandlerTypeLetterOrNum;
+
 textField.hj_inputHandler.inputType =  HJInputHandlerTypeMobile;
 
 (2)limit
 
-//限制输入字符(为空则不判断)
+限制输入字符(为空则不判断)
+
 @property (nonatomic,copy)   NSString *limitLetters;
-//最小长度
+
+最小长度
+
 @property (nonatomic,strong) NSNumber *minLength;
-//最大长度
+
+最大长度
+
 @property (nonatomic,strong) NSNumber *maxLength;
-//指定长度
+
+指定长度
+
 @property (nonatomic,strong) NSNumber *limitLength;
 
 
 switch (inputType) {
+
         case HJInputHandlerTypeNormal:
             self.listener.keyboardType = UIKeyboardTypeDefault;
             self.limitLength = nil;
             self.limitLetters = nil;
             break;
+
         case HJInputHandlerTypeMobile:
             self.listener.keyboardType = UIKeyboardTypePhonePad;
             self.limitLength = @11;
