@@ -1,6 +1,6 @@
 # HJInputHandler
 
-![image](https://github.com/thisIsDestiny/HJInputHandler/Input/HJInputHandlerV1.0.gif
+![image](https://github.com/thisIsDestiny/HJInputHandler/Input/HJInputHandlerV1.0.gif)
 
 (1)Method:
 
