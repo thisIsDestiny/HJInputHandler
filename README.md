@@ -1,11 +1,13 @@
 # HJInputHandler
 
 (1)Method:
+
 //SetInputType
 textView.hj_inputHandler.inputType =  HJInputHandlerTypeLetterOrNum;
 textField.hj_inputHandler.inputType =  HJInputHandlerTypeMobile;
 
 (2)limit
+
 //限制输入字符(为空则不判断)
 @property (nonatomic,copy)   NSString *limitLetters;
 //最小长度
