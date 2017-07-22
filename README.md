@@ -1,5 +1,7 @@
 # HJInputHandler
 
+HJInputHandler/Input/HJInputHandlerV1.0.gif
+
 (1)Method:
 
 SetInputType
