@@ -65,7 +65,9 @@ SetInputType
          }
 
 (3)实现原理 获取控件通知
-现在支持 UITextField\UITextView[注册通知]
+
+   现在支持 UITextField\UITextView[注册通知]
+        
         //设置被监听对象
         @property (nonatomic,weak) NSObject<UITextInput> *listener;
 
@@ -99,20 +101,26 @@ SetInputType
         //输入类型
         typedef NS_ENUM(NSInteger,HJInputHandlerType){
     
-    HJInputHandlerTypeNormal        = 0,//不做限制
-    HJInputHandlerTypeMobile           ,//手机号（11位纯数字）
-    HJInputHandlerTypeLetterOrNum      ,//字母或数字
-    HJInputHandlerTypeID               ,//身份证（数字+xX）
-    HJInputHandlerTypeBank             ,//最多21位(数字)
-    HJInputHandlerTypePriceThousand    ,//显示千分位
+              HJInputHandlerTypeNormal        = 0,//不做限制
+              HJInputHandlerTypeMobile           ,//手机号（11位纯数字）
+              HJInputHandlerTypeLetterOrNum      ,//字母或数字
+              HJInputHandlerTypeID               ,//身份证（数字+xX）
+              HJInputHandlerTypeBank             ,//最多21位(数字)
+              HJInputHandlerTypePriceThousand    ,//显示千分位
         };
+
+        //异常回调
+        @property (nonatomic,copy) void(^errCallback)(HJInputHandlerInputErrorType errorType);
+
+        //返回清除样式的text
+        -(NSString *)removeFormateText;
 
         //异常类型
         typedef NS_ENUM(NSInteger,HJInputHandlerInputErrorType){
     
-    HJInputHandlerInputErrorTypeNone            = 0,
-    HJInputHandlerInputErrorTypeBeyondMax       = 1,//超长
-    HJInputHandlerInputErrorTypeBelowMin        = 2,//过短
-    HJInputHandlerInputErrorTypeNotLimitLength  = 3,//长度不符合
-    HJInputHandlerInputErrorTypeNotLimitString  = 4 //输入字符不符合
+         HJInputHandlerInputErrorTypeNone            = 0,
+         HJInputHandlerInputErrorTypeBeyondMax       = 1,//超长
+         HJInputHandlerInputErrorTypeBelowMin        = 2,//过短
+         HJInputHandlerInputErrorTypeNotLimitLength  = 3,//长度不符合
+         HJInputHandlerInputErrorTypeNotLimitString  = 4 //输入字符不符合
         };
