@@ -2,6 +2,10 @@
 
 ![image](https://github.com/thisIsDestiny/HJInputHandler/blob/master/Input/HJInputHandlerV1.0.gif)
 
+对UITextfield、UITextView及遵守<UITextInput>的控件监听通知
+在交互周期（开始编辑，编辑改变，编辑结束）进行操作，限制输入。
+
+使用方法1：直接指定inputType
 (1)Method:
 
 SetInputType
@@ -10,6 +14,7 @@ SetInputType
 
         textField.hj_inputHandler.inputType =  HJInputHandlerTypeMobile;
 
+使用方法2：直接指定输入限制
 (2)limit
 
         //限制输入字符(为空则不判断)
