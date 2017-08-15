@@ -1,12 +1,14 @@
 //
-//  HJInputHandler.h
-//  IOSMaster
+//  InputHandler.h
+//  RedPage
 //
-//  Created by HJ on 2017/7/22.
-//  Copyright © 2017年 HJ. All rights reserved.
+//  Created by imac on 2017/6/23.
+//  Copyright © 2017年 Shanjian. All rights reserved.
 //
 
 #import <Foundation/Foundation.h>
+#import "UITextField+HJExtension.h"
+#import "UITextView+HJExtension.h"
 
 //输入类型
 typedef NS_ENUM(NSInteger,HJInputHandlerType){
@@ -50,8 +52,15 @@ typedef NS_ENUM(NSInteger,HJInputHandlerInputErrorType){
 //输入类型 -- (预配置 参数 及 特殊显示)
 @property (nonatomic,assign) HJInputHandlerType inputType;
 
-//异常回调
+//输入异常回调
 @property (nonatomic,copy) void(^errCallback)(HJInputHandlerInputErrorType errorType);
+
+@property (nonatomic,copy) void(^didBeginEditBlock)();
+
+@property (nonatomic,copy) void(^didEndEditBlock)();
+
+@property (nonatomic,copy) void(^editChangedBlock)();
+
 
 //返回清除样式的text
 -(NSString *)removeFormateText;
@@ -63,34 +72,11 @@ typedef NS_ENUM(NSInteger,HJInputHandlerInputErrorType){
 
 @property (nonatomic,strong,readonly) HJInputHandler *hj_inputHandler;
 
-//特殊样式显示属性
-//@property (nonatomic,copy) NSString *hj_formateText;
-
 @end
 
 @interface UITextView (HJInputHandler)
 
 @property (nonatomic,strong,readonly) HJInputHandler *hj_inputHandler;
 
-//特殊样式显示属性
-//@property (nonatomic,copy) NSString *hj_formateText;
-
 @end
 
-
-//输入字符样式 
-@interface NSString (HJInputHandler)
-
--(NSString *)hj_showThousnad;
--(NSString *)hj_removeThousand;
-
--(NSString *)hj_showMobile;
--(NSString *)hj_removeMobile;
-
--(NSString *)hj_showBankBlank;
--(NSString *)hj_removeBankblank;
-
--(NSString *)hj_hideRealName;
-
-
-@end

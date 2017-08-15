@@ -1,12 +1,13 @@
 //
-//  HJInputHandler.m
-//  IOSMaster
+//  InputHandler.m
+//  RedPage
 //
-//  Created by imac on 2017/7/22.
-//  Copyright © 2017年 HJ. All rights reserved.
+//  Created by imac on 2017/6/23.
+//  Copyright © 2017年 Shanjian. All rights reserved.
 //
 
 #import "HJInputHandler.h"
+#import "NSString+HJExtension.h"
 #import <objc/runtime.h>
 
 static NSString *const kHJNumOrLetterLimited =  @"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789\n";
@@ -31,9 +32,9 @@ static NSString *const kHJMobileLimited      =  @"0123456789-";
                               UITextFieldTextDidChangeNotification:@"inputDidChange:",
                               },
              @"UITextView":@{UITextViewTextDidBeginEditingNotification:@"inputDidBeginEditing:",
-                              UITextViewTextDidEndEditingNotification:@"inputDidEndEditing:",
-                              UITextViewTextDidChangeNotification:@"inputDidChange:",
-                              }
+                             UITextViewTextDidEndEditingNotification:@"inputDidEndEditing:",
+                             UITextViewTextDidChangeNotification:@"inputDidChange:",
+                             }
              };
 }
 
@@ -49,9 +50,26 @@ static NSString *const kHJMobileLimited      =  @"0123456789-";
     
     Class class = [_listener class];
     
-    NSString *class_name = NSStringFromClass(class);
+    //NSString *class_name = NSStringFromClass(class);
     
-    return [[[self class] register_showText] objectForKey:class_name];
+    NSString *keyPath = @"";
+    
+    NSDictionary *dic = [[self class] register_showText];
+    
+    for (NSString *register_class_name in dic) {
+        
+        Class register_class = NSClassFromString(register_class_name);
+        
+        if ([class isSubclassOfClass:register_class]) {
+            
+            keyPath = [dic objectForKey:register_class_name];
+            
+            break;
+        }
+        
+    }
+
+    return keyPath;
 }
 
 #pragma mark - Cycle
@@ -175,14 +193,20 @@ static NSString *const kHJMobileLimited      =  @"0123456789-";
     text = [self removeFormate:text];
     
     [self formateListenerWith:text];
+    
+    
+    if(_didBeginEditBlock) _didBeginEditBlock();
 }
 
 -(void)inputDidEndEditing:(NSNotification *)noti{
     
     NSString *text = [_listener valueForKey:self.listenerShowKeyPath];
-
+    
     [self isOnRequired:text];
+    
     [self formateListenerWith:[self formate:text]];
+    
+    if(_didEndEditBlock) _didEndEditBlock();
     
 }
 
@@ -197,17 +221,29 @@ static NSString *const kHJMobileLimited      =  @"0123456789-";
     
     NSString *string = [text substringWithRange:NSMakeRange(text.length - 1, 1)];
     
+    NSLog(@"%@",text);
+    
     //判断是否输入有效类型
-    BOOL canReplace =   [self vertifyInputCurrent:string]
+    BOOL canReplace  =  [self vertifyInputCurrent:string]
                         &&
                         [self isInMaxLength:text string:string];//是否超长
     
-    if (canReplace == NO) {
-        
-        [self formateListenerWith: [text substringWithRange:NSMakeRange(0,text.length - 1)]];
+    
+    UITextRange *selectedRange = _listener.markedTextRange;
+    
+    UITextPosition *position = [_listener positionFromPosition:selectedRange.start offset:0];
+    
+    if (position) {
+        canReplace = YES;
     }
     
-    //NSLog(@"%@ -- %@",[_listener valueForKey:@"text"],[_listener valueForKey:@"attributedText"]);
+    if (canReplace == NO) {
+        
+        [self formateListenerWith: [text substringWithRange:NSMakeRange(0,self.maxLength.integerValue)]];
+    }
+    
+    
+    if(_editChangedBlock) _editChangedBlock();
 }
 
 #pragma mark - Required
@@ -215,20 +251,22 @@ static NSString *const kHJMobileLimited      =  @"0123456789-";
 -(BOOL)vertifyInputCurrent:(NSString *)string{
     
     NSCharacterSet *cs;
+    
     HJInputHandlerInputErrorType errorType = HJInputHandlerInputErrorTypeNone;
     
-    if(self.limitLetters.length > 0)
-    {
+    if(self.limitLetters.length > 0){
+        
         cs = [[NSCharacterSet characterSetWithCharactersInString:self.limitLetters]invertedSet];
         errorType = HJInputHandlerInputErrorTypeNotLimitString;
     }
     
-    if (cs)
-    {
+    if (cs){
+        
         //按cs分离出数组,数组按@""分离出字符串
         NSString *filtered = [[string componentsSeparatedByCharactersInSet:cs]componentsJoinedByString:@""];
         
         BOOL canChange = [string isEqualToString:filtered];
+        
         if (canChange == NO)
         {
             self.errCallback(errorType);
@@ -238,7 +276,7 @@ static NSString *const kHJMobileLimited      =  @"0123456789-";
     return YES;
 }
 
-//判断是否超过最大长度
+//判断是否在最大长度内
 -(BOOL)isInMaxLength:(NSString *)text string:(NSString *)string{
     
     if (self.maxLength != nil){
@@ -311,15 +349,31 @@ static NSString *const kHJMobileLimited      =  @"0123456789-";
     
     //SEL sel_attr_text = NSSelectorFromString(@"setHj_formateText:");
     
-    /*
-    if ([_listener respondsToSelector:sel_attr_text]) {
-        
-        [_listener performSelector:sel_attr_text withObject:text];
-    }
+    /*12
+     if ([_listener respondsToSelector:sel_attr_text]) {
+     
+     [_listener performSelector:sel_attr_text withObject:text];
+     }
      */
     
-    [_listener setValue:text forKey:self.listenerShowKeyPath];
-
+    NSString *key = self.listenerShowKeyPath;
+    
+    if([_listener isKindOfClass:[UITextField class]]){
+        
+        [_listener setValue:@"" forKey:key];
+        
+        [_listener insertText:text];
+        
+        [_listener setValue:text forKey:key];
+    }
+    else{
+    
+        [_listener setValue:@"" forKey:key];
+        
+        [_listener insertText:text];
+    }
+    
+    NSLog(@"inputText:%@ -- formate:%@",text,[_listener valueForKey:key]);
 }
 
 #pragma mark - Formatter
@@ -452,99 +506,4 @@ static NSString *const kHJMobileLimited      =  @"0123456789-";
 @end
 
 
-@implementation NSString (HJInputHandler)
-
-//  - 千分符
--(NSString *)hj_showThousnad{
-    
-    if(!self || [self floatValue] == 0)
-    {
-        return @"0.00";
-    }
-    else if([self floatValue] < 1)
-    {
-        NSNumberFormatter *numberFormatter = [[NSNumberFormatter alloc] init];
-        [numberFormatter setPositiveFormat:@",##0.00;"];
-        return [numberFormatter stringFromNumber:[NSNumber numberWithDouble:[self doubleValue]]];
-    }
-    else
-    {
-        NSNumberFormatter *numberFormatter = [[NSNumberFormatter alloc] init];
-        [numberFormatter setPositiveFormat:@",###.00;"];
-        return [numberFormatter stringFromNumber:[NSNumber numberWithDouble:[self doubleValue]]];
-    }
-}
--(NSString *)hj_removeThousand{
-    
-    NSNumberFormatter *formatter = [NSNumberFormatter new];
-    formatter.numberStyle = NSNumberFormatterDecimalStyle;
-    [formatter setPositiveFormat:@",##0.00;"];
-    return [formatter numberFromString:self].stringValue;
-}
-
-//  - 手机号
--(NSString *)hj_showMobile{
-    
-    NSMutableString *str = [NSMutableString stringWithString:self];
-    if (str.length >= 3)
-    {
-        [str insertString:@"-" atIndex:3];
-        
-    }
-    if (str.length >= 8)
-    {
-        [str insertString:@"-" atIndex:8];
-    }
-    
-    return str;
-}
--(NSString *)hj_removeMobile{
-    
-    return [self stringByReplacingOccurrencesOfString:@"-" withString:@""];
-}
-
-//  - 银行卡空格显示
--(NSString *)hj_removeBankblank{
-    
-    return [self stringByReplacingOccurrencesOfString:@" " withString:@""];
-}
--(NSString *)hj_showBankBlank{
-    
-    NSInteger count = self.length / 4;
-    
-    NSMutableString *str = [NSMutableString stringWithString:self];
-    
-    for (int i = 0; i < count; i ++) {
-        
-        NSInteger index = 4 * (i+1)  + i;
-        
-        [str insertString:@" " atIndex:index];
-        
-    }
-    return str;
-    
-}
-
-//  - 姓名隐藏
--(NSString *)hj_hideRealName{
-    
-    if (self.length == 2)
-    {
-        return [self stringByReplacingCharactersInRange:NSMakeRange(1, 1) withString:@"*"];
-    }
-    if (self.length >= 3)
-    {
-        NSMutableString *stars = [NSMutableString string];
-        for (int i = 0; i < self.length - 2; i++)
-        {
-            [stars appendString:@"*"];
-        }
-        return [self stringByReplacingCharactersInRange:NSMakeRange(1, self.length - 2)
-                                             withString:stars];
-    }
-    
-    return self;
-}
-
-@end
 
